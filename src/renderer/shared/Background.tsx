@@ -5,11 +5,7 @@ interface Props {
 }
 
 export function Background({ background }: Props) {
-  const style: React.CSSProperties = {
-    position: 'absolute',
-    inset: 0,
-    zIndex: 0
-  }
+  const style: React.CSSProperties = {}
 
   if (background.type === 'color') {
     style.backgroundColor = background.color ?? '#000'
@@ -24,5 +20,5 @@ export function Background({ background }: Props) {
     }
   }
 
-  return <div style={style} />
+  return <div className="absolute inset-0" style={style} />
 }

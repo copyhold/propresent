@@ -59,66 +59,54 @@ export function App() {
   }, [nextSlide, prevSlide, setMode, gotoSection])
 
   return (
-    <div
-      style={{
-        display: 'grid',
-        gridTemplateColumns: '240px 1fr',
-        gridTemplateRows: '1fr',
-        height: '100vh',
-        background: '#111',
-        color: '#fff',
-        fontFamily: 'system-ui, sans-serif'
-      }}
-    >
+    <div className="grid grid-cols-[25%_1fr] grid-rows-[1fr] h-screen bg-app-950 text-white font-sans">
       {/* Left: song list */}
-      <div style={{ borderRight: '1px solid #2a2a2a', overflow: 'hidden' }}>
+      <div className="border-r border-app-700 overflow-hidden">
         <SongList />
       </div>
 
       {/* Right: main area */}
-      <div style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+      <div className="flex flex-col overflow-hidden">
         {/* Template selector */}
-        <div style={{ borderBottom: '1px solid #2a2a2a' }}>
+        <div className="border-b border-app-700">
           <TemplateSelector />
         </div>
 
         {/* Slide navigator */}
-        <div style={{ flex: 1, overflow: 'hidden' }}>
+        <div className="flex-1 overflow-hidden">
           <SlideNavigator />
         </div>
 
         {/* Bottom: preview + controls */}
-        <div
-          style={{
-            borderTop: '1px solid #2a2a2a',
-            padding: '8px',
-            display: 'flex',
-            gap: '12px',
-            alignItems: 'flex-start'
-          }}
-        >
-          <div style={{ width: '240px', flexShrink: 0 }}>
-            <OutputPreview />
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', paddingTop: '4px' }}>
-            <div style={{ fontSize: '11px', color: '#666' }}>
+        <div className="border-t border-app-700 p-2 grid grid-cols-[auto_1fr] gap-3 h-[30%] shrink-0 overflow-hidden">
+          <OutputPreview />
+          <div className="grid grid-rows-[auto_auto_auto] content-start gap-1.5 pt-1">
+            <div className="text-[11px] text-app-400">
               Slide {(presentationState?.currentSlideIndex ?? 0) + 1} / {presentationState?.totalSlides ?? 0}
             </div>
-            <div style={{ display: 'flex', gap: '6px' }}>
+            <div className="flex gap-1.5">
               <button
                 onClick={() => setMode('live')}
-                style={modeBtn(presentationState?.outputMode === 'live')}
+                className={`px-3 py-1 rounded text-xs cursor-pointer text-white ${
+                  presentationState?.outputMode === 'live'
+                    ? 'border-2 border-accent bg-accent-dark'
+                    : 'border border-app-600 bg-app-800'
+                }`}
               >
                 Live
               </button>
               <button
                 onClick={() => setMode('blank')}
-                style={modeBtn(presentationState?.outputMode === 'blank')}
+                className={`px-3 py-1 rounded text-xs cursor-pointer text-white ${
+                  presentationState?.outputMode === 'blank'
+                    ? 'border-2 border-accent bg-accent-dark'
+                    : 'border border-app-600 bg-app-800'
+                }`}
               >
                 Blank
               </button>
             </div>
-            <div style={{ fontSize: '10px', color: '#555', marginTop: '4px' }}>
+            <div className="text-[10px] text-app-500 mt-1">
               ← → Space to navigate · 1/2/c/b for sections · Esc to blank
             </div>
           </div>
@@ -126,16 +114,4 @@ export function App() {
       </div>
     </div>
   )
-}
-
-function modeBtn(active: boolean): React.CSSProperties {
-  return {
-    padding: '4px 12px',
-    borderRadius: '4px',
-    border: active ? '2px solid #4a8fff' : '1px solid #444',
-    background: active ? '#1a2a4a' : '#222',
-    color: '#fff',
-    cursor: 'pointer',
-    fontSize: '12px'
-  }
 }
