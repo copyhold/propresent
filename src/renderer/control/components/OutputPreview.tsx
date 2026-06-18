@@ -11,7 +11,7 @@ export function OutputPreview() {
 
   return (
     <div
-      className="w-full aspect-video bg-black rounded overflow-hidden border border-[#333]"
+      className="h-full aspect-video bg-black rounded overflow-hidden border border-[#333]"
     >
       {payload ? (
         <SlideRenderer payload={payload} />

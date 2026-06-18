@@ -39,9 +39,9 @@ export function SlideNavigator() {
                     key={slide.id}
                     onClick={() => gotoSlide(fi)}
                     title={primaryLines.join('\n')}
-                    className={`w-20 h-12 p-1 rounded cursor-pointer overflow-hidden text-[9px] leading-[1.3] text-app-100 ${isActive ? 'border-2 border-accent bg-accent-dark' : 'border border-[#333] bg-app-900'}`}
+                    className={`w-[200px] h-[120px] p-2 rounded cursor-pointer overflow-hidden text-[12px] leading-[1.4] text-app-100 ${isActive ? 'border-2 border-accent bg-accent-dark' : 'border border-[#333] bg-app-900'}`}
                   >
-                    {primaryLines.slice(0, 3).join('\n')}
+                    {primaryLines.slice(0, 6).join('\n')}
                   </div>
                 )
               })}

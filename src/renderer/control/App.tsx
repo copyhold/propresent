@@ -59,7 +59,7 @@ export function App() {
   }, [nextSlide, prevSlide, setMode, gotoSection])
 
   return (
-    <div className="grid grid-cols-[240px_1fr] grid-rows-[1fr] h-screen bg-app-950 text-white font-sans">
+    <div className="grid grid-cols-[25%_1fr] grid-rows-[1fr] h-screen bg-app-950 text-white font-sans">
       {/* Left: song list */}
       <div className="border-r border-app-700 overflow-hidden">
         <SongList />
@@ -78,11 +78,9 @@ export function App() {
         </div>
 
         {/* Bottom: preview + controls */}
-        <div className="border-t border-app-700 p-2 flex gap-3 items-start">
-          <div className="w-[240px] shrink-0">
-            <OutputPreview />
-          </div>
-          <div className="flex flex-col gap-1.5 pt-1">
+        <div className="border-t border-app-700 p-2 grid grid-cols-[auto_1fr] gap-3 h-[30%] shrink-0 overflow-hidden">
+          <OutputPreview />
+          <div className="grid grid-rows-[auto_auto_auto] content-start gap-1.5 pt-1">
             <div className="text-[11px] text-app-400">
               Slide {(presentationState?.currentSlideIndex ?? 0) + 1} / {presentationState?.totalSlides ?? 0}
             </div>
