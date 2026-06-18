@@ -1,0 +1,53 @@
+{
+  "id": "default",
+  "name": "Default",
+  "description": "Single language, centered white text on black",
+  "designResolution": { "width": 1920, "height": 1080 },
+  "background": {
+    "type": "color",
+    "color": "#000000"
+  },
+  "parts": [
+    {
+      "id": "primary-text",
+      "role": "primary",
+      "geometry": { "left": 5, "top": 15, "width": 90, "height": 60 },
+      "style": {
+        "fontFamily": "Arial, sans-serif",
+        "fontSize": 64,
+        "fontWeight": "bold",
+        "color": "#ffffff",
+        "textAlign": "center",
+        "lineHeight": 1.4
+      },
+      "verticalAlign": "middle",
+      "hideWhenEmpty": false
+    },
+    {
+      "id": "song-title",
+      "role": "title",
+      "geometry": { "left": 5, "top": 88, "width": 55, "height": 8 },
+      "style": {
+        "fontFamily": "Arial, sans-serif",
+        "fontSize": 22,
+        "color": "#888888",
+        "textAlign": "left"
+      },
+      "verticalAlign": "middle",
+      "hideWhenEmpty": true
+    },
+    {
+      "id": "copyright",
+      "role": "copyright",
+      "geometry": { "left": 62, "top": 88, "width": 33, "height": 8 },
+      "style": {
+        "fontFamily": "Arial, sans-serif",
+        "fontSize": 18,
+        "color": "#666666",
+        "textAlign": "right"
+      },
+      "verticalAlign": "middle",
+      "hideWhenEmpty": true
+    }
+  ]
+}

@@ -1,0 +1,68 @@
+{
+  "id": "two-language",
+  "name": "Two Language",
+  "description": "Primary text on top, Hebrew translation below",
+  "designResolution": { "width": 1920, "height": 1080 },
+  "background": {
+    "type": "color",
+    "color": "#000000"
+  },
+  "parts": [
+    {
+      "id": "primary-text",
+      "role": "primary",
+      "geometry": { "left": 5, "top": 12, "width": 90, "height": 38 },
+      "style": {
+        "fontFamily": "Arial, sans-serif",
+        "fontSize": 56,
+        "fontWeight": "bold",
+        "color": "#ffffff",
+        "textAlign": "center",
+        "lineHeight": 1.35
+      },
+      "verticalAlign": "middle",
+      "hideWhenEmpty": false
+    },
+    {
+      "id": "translation-he",
+      "role": "translation",
+      "languageCode": "he",
+      "geometry": { "left": 5, "top": 53, "width": 90, "height": 32 },
+      "style": {
+        "fontFamily": "Arial, sans-serif",
+        "fontSize": 44,
+        "color": "#cccccc",
+        "textAlign": "center",
+        "lineHeight": 1.35
+      },
+      "verticalAlign": "middle",
+      "hideWhenEmpty": true
+    },
+    {
+      "id": "song-title",
+      "role": "title",
+      "geometry": { "left": 5, "top": 89, "width": 55, "height": 7 },
+      "style": {
+        "fontFamily": "Arial, sans-serif",
+        "fontSize": 20,
+        "color": "#888888",
+        "textAlign": "left"
+      },
+      "verticalAlign": "middle",
+      "hideWhenEmpty": true
+    },
+    {
+      "id": "copyright",
+      "role": "copyright",
+      "geometry": { "left": 62, "top": 89, "width": 33, "height": 7 },
+      "style": {
+        "fontFamily": "Arial, sans-serif",
+        "fontSize": 16,
+        "color": "#666666",
+        "textAlign": "right"
+      },
+      "verticalAlign": "middle",
+      "hideWhenEmpty": true
+    }
+  ]
+}
