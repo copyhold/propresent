@@ -129,6 +129,6 @@ export const useAppStore = create<AppState>((set, get) => ({
 
   clearPresentation: async () => {
     const state = (await window.electronAPI.invoke!(IPC.PRESENT_CLEAR)) as PresentationState
-    set({ presentationState: state, activeSong: null })
+    set({ presentationState: state, activeSong: null, selectedSong: null })
   }
 }))

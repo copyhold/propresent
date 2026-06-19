@@ -20,8 +20,9 @@ export function SongDetailPane() {
     filePath: selectedSong.variantFilePaths[i]
   }))
 
-  const openFile = (filePath: string) => {
-    window.electronAPI.openFile?.(filePath)
+  const openFile = async (filePath: string) => {
+    const err = await window.electronAPI.openFile?.(filePath)
+    if (err) console.warn('openFile failed:', err)
   }
 
   return (
@@ -71,9 +72,14 @@ export function SongDetailPane() {
               {variants.map(({ lang, filePath }) => (
                 <button
                   key={lang}
-                  onClick={() => openFile(filePath)}
-                  className="text-left text-sm text-accent hover:text-white transition-colors cursor-pointer"
-                  title={filePath}
+                  onClick={() => filePath && openFile(filePath)}
+                  disabled={!filePath}
+                  className={`text-left text-sm transition-colors cursor-pointer ${
+                    filePath
+                      ? 'text-accent hover:text-white'
+                      : 'text-app-500 cursor-default'
+                  }`}
+                  title={filePath || 'file not found'}
                 >
                   {lang}
                 </button>
