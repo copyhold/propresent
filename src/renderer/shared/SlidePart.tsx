@@ -79,7 +79,7 @@ export function SlidePart({ part, lines, minFontSize, maxFontSize }: Props) {
     textTransform: style.textTransform
   }
 
-  const markdown = lines.join('\n')
+  const markdown = lines.join('  \n')
 
   return (
     <div ref={containerRef} style={containerStyle}>

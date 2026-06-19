@@ -83,7 +83,7 @@ function parseHeader(lines: string[]): Omit<ParsedSongFile, 'sections'> {
     if (inVariants) {
       const variantMatch = line.match(/^\s*-\s*([^:]+):\s*(.+)$/)
       if (variantMatch) {
-        variants.push({ langCode: variantMatch[1].trim(), relativePath: variantMatch[2].trim() })
+        variants.push({ langCode: variantMatch[1].trim(), relativePath: variantMatch[2].trim().replace(/^["']|["']$/g, '') })
       }
       continue
     }
