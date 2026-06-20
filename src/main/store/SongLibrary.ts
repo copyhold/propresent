@@ -17,8 +17,9 @@ export class SongLibrary {
     for (const w of this.watchers) w.close();
     this.watchers = [];
 
+    const readyPromises: Promise<void>[] = [];
+
     for (const dir of songDirs) {
-      console.log("watching dirs", dir);
       const watcher = watch(dir, {
         persistent: true,
         ignoreInitial: false,
@@ -28,7 +29,10 @@ export class SongLibrary {
       watcher.on("change", (path) => this.handleFile(dir, path, "changed"));
       watcher.on("unlink", (path) => this.handleRemove(dir, path));
       this.watchers.push(watcher);
+      readyPromises.push(new Promise<void>((resolve) => watcher.on("ready", resolve)));
     }
+
+    await Promise.all(readyPromises);
   }
 
   private handleFile(

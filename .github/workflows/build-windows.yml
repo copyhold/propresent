@@ -35,6 +35,12 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Bump version
+        shell: bash
+        run: |
+          VERSION="${{ steps.tag.outputs.value }}"
+          npm version "${VERSION#v}" --no-git-tag-version
+
       - name: Build
         run: npm run build
 
