@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Song Editor</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      display: grid;
+      grid-template-columns: 220px 1fr 1fr;
+      height: 100vh;
+      background: #111;
+      color: #d4d4d4;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-size: 13px;
+      overflow: hidden;
+    }
+
+    section {
+      display: flex;
+      flex-direction: column;
+      border-right: 1px solid #252525;
+      overflow: hidden;
+    }
+    section:last-child { border-right: none; }
+
+    /* ── Panel header ── */
+    .panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 12px;
+      background: #181818;
+      border-bottom: 1px solid #252525;
+      flex-shrink: 0;
+      height: 40px;
+      gap: 8px;
+    }
+    .panel-title {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      color: #777;
+    }
+
+    /* ── Song list ── */
+    .list-search {
+      padding: 8px;
+      border-bottom: 1px solid #252525;
+      flex-shrink: 0;
+    }
+    .list-search input {
+      width: 100%;
+      background: #1e1e1e;
+      border: 1px solid #303030;
+      color: #d4d4d4;
+      padding: 5px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-family: inherit;
+    }
+    .list-search input::placeholder { color: #555; }
+    .list-search input:disabled { opacity: .4; cursor: not-allowed; }
+
+    .songs-container {
+      flex: 1;
+      overflow-y: auto;
+    }
+    .song-item {
+      padding: 7px 12px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      border-bottom: 1px solid #1c1c1c;
+    }
+    .song-item:hover { background: #1c1c1c; }
+    .song-item.active { background: #172840; color: #7bb8f0; }
+    .song-item .song-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .song-item .dirty-dot { color: #f59e0b; font-size: 10px; flex-shrink: 0; }
+
+    .list-footer {
+      padding: 6px 12px;
+      font-size: 11px;
+      color: #555;
+      border-top: 1px solid #252525;
+      flex-shrink: 0;
+    }
+
+    /* ── Editor panels ── */
+    .editor-content {
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      padding: 12px;
+      gap: 8px;
+      overflow-y: auto;
+    }
+
+    .field-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+    .field-row label {
+      font-size: 11px;
+      color: #777;
+      width: 72px;
+      flex-shrink: 0;
+      text-align: right;
+    }
+    .field-row input {
+      flex: 1;
+      background: #1e1e1e;
+      border: 1px solid #303030;
+      color: #d4d4d4;
+      padding: 5px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-family: inherit;
+    }
+    .field-row input:focus { outline: none; border-color: #3a6dbf; }
+
+    .lyrics-section {
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+    }
+    .lyrics-section > label {
+      font-size: 11px;
+      color: #777;
+      margin-bottom: 4px;
+      flex-shrink: 0;
+    }
+    .lyrics-section textarea {
+      flex: 1;
+      min-height: 200px;
+      resize: none;
+      background: #1e1e1e;
+      border: 1px solid #303030;
+      color: #d4d4d4;
+      padding: 8px;
+      border-radius: 4px;
+      font-family: 'JetBrains Mono', 'Fira Code', 'Menlo', 'Courier New', monospace;
+      font-size: 12px;
+      line-height: 1.6;
+    }
+    .lyrics-section textarea:focus { outline: none; border-color: #3a6dbf; }
+
+    .panel-footer {
+      padding: 8px 12px;
+      border-top: 1px solid #252525;
+      flex-shrink: 0;
+    }
+
+    /* ── Buttons ── */
+    button {
+      cursor: pointer;
+      border: none;
+      border-radius: 4px;
+      font-size: 12px;
+      font-family: inherit;
+      padding: 6px 14px;
+    }
+    .btn-outline {
+      background: transparent;
+      color: #aaa;
+      border: 1px solid #383838;
+    }
+    .btn-outline:hover { background: #1e1e1e; color: #d4d4d4; }
+
+    .btn-accent {
+      background: #1e3a5f;
+      color: #7bb8f0;
+      border: 1px solid #2a5080;
+    }
+    .btn-accent:hover { background: #254872; }
+
+    .btn-save {
+      width: 100%;
+      background: #1a2e1a;
+      color: #6bbf6b;
+      border: 1px solid #263d26;
+    }
+    .btn-save:hover { background: #1f361f; }
+    .btn-save.dirty {
+      background: #2e2a14;
+      color: #e8c84a;
+      border-color: #4a431e;
+    }
+
+    /* ── Empty / placeholder states ── */
+    .empty-state {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #444;
+      font-size: 12px;
+    }
+
+    .no-variant-state {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      padding: 4px 0;
+    }
+    .no-variant-state p { color: #666; margin: 0; font-size: 12px; }
+    .create-row { display: flex; gap: 8px; align-items: center; }
+    .create-row input {
+      background: #1e1e1e;
+      border: 1px solid #303030;
+      color: #d4d4d4;
+      padding: 5px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-family: inherit;
+      width: 90px;
+    }
+    .create-row input:focus { outline: none; border-color: #3a6dbf; }
+
+    /* ── Misc ── */
+    .lang-badge {
+      font-size: 11px;
+      background: #1a2d3d;
+      color: #7bb8f0;
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-weight: 600;
+    }
+    .filename-label {
+      font-size: 11px;
+      color: #555;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      max-width: 180px;
+    }
+
+    .variant-tabs {
+      display: flex;
+      gap: 4px;
+      flex-shrink: 0;
+      flex-wrap: wrap;
+    }
+    .variant-tab {
+      padding: 3px 10px;
+      font-size: 11px;
+      background: #1e1e1e;
+      border: 1px solid #303030;
+      color: #777;
+      border-radius: 4px;
+      cursor: pointer;
+      font-family: inherit;
+    }
+    .variant-tab:hover { background: #252525; color: #aaa; }
+    .variant-tab.active { background: #172840; color: #7bb8f0; border-color: #2a5080; }
+
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #2e2e2e; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: #3e3e3e; }
+  </style>
+</head>
+<body>
+
+<!-- ── SONG LIST ── -->
+<section id="panel-list">
+  <div class="panel-header">
+    <span class="panel-title">Songs</span>
+    <button class="btn-outline" id="btn-open">Open Folder</button>
+  </div>
+  <div class="list-search">
+    <input type="text" id="search" placeholder="Search…" disabled>
+  </div>
+  <div class="songs-container" id="songs-container">
+    <div class="empty-state">No folder open</div>
+  </div>
+  <div class="list-footer" id="list-footer"></div>
+</section>
+
+<!-- ── PRIMARY EDITOR ── -->
+<section id="panel-primary">
+  <div class="panel-header">
+    <span class="panel-title">Primary</span>
+    <span class="filename-label" id="primary-filename"></span>
+  </div>
+  <div class="editor-content" id="primary-content">
+    <div class="empty-state">Open a song to edit</div>
+  </div>
+  <div class="panel-footer" id="primary-footer" style="display:none">
+    <button class="btn-save" id="btn-save-primary">Save</button>
+  </div>
+</section>
+
+<!-- ── VARIANT EDITOR ── -->
+<section id="panel-variant">
+  <div class="panel-header">
+    <span class="panel-title">Variant</span>
+    <span id="variant-badge"></span>
+  </div>
+  <div class="editor-content" id="variant-content">
+    <div class="empty-state">Open a song to edit</div>
+  </div>
+  <div class="panel-footer" id="variant-footer" style="display:none">
+    <button class="btn-save" id="btn-save-variant">Save</button>
+  </div>
+</section>
+
+<script>
+// ── STATE ──────────────────────────────────────────────────────────────────
+
+let dirHandle    = null;
+let songs        = [];     // [{ name, handle }] — primary files only (not referenced as a variant)
+let variantPaths = new Set();
+let searchQuery  = '';
+let activeName   = null;
+
+let pState = null;
+// { handle, title, mood, template, language, copyright, variants:[], body, dirty }
+
+let vState = null;
+// { handle, lang, path, title, body, dirty } | { noVariant: true }
+
+// ── PARSE / SERIALIZE ──────────────────────────────────────────────────────
+
+function parseFile(text) {
+  const m = text.match(/^-{3,}$/m);
+  let headerText = '', body = '';
+  if (m) {
+    headerText = text.slice(0, m.index).trimEnd();
+    body = text.slice(m.index + m[0].length).replace(/^\r?\n/, '');
+  } else {
+    body = text;
+  }
+
+  const result = { title: '', mood: '', template: '', language: '', copyright: '', variants: [], body };
+  let inVariants = false;
+
+  for (const line of headerText.split(/\r?\n/)) {
+    if (/^Variants\s*:/i.test(line)) { inVariants = true; continue; }
+    if (inVariants) {
+      const vm = line.match(/^\s+-\s+(\S+)\s*:\s*(.+)/);
+      if (vm) { result.variants.push({ lang: vm[1], path: vm[2].trim().replace(/^["']|["']$/g, '') }); continue; }
+      inVariants = false;
+    }
+    const kv = line.match(/^([\w][\w\s]*?)\s*:\s*(.*)/);
+    if (kv) {
+      const k = kv[1].trim().toLowerCase();
+      const v = kv[2].trim();
+      if (k === 'title')     result.title     = v;
+      else if (k === 'mood')      result.mood      = v;
+      else if (k === 'template')  result.template  = v;
+      else if (k === 'language')  result.language  = v;
+      else if (k === 'copyright') result.copyright = v;
+    }
+  }
+  return result;
+}
+
+function serializeFile({ title, mood, template, language, copyright, variants, body }) {
+  let h = `Title: ${title}\n`;
+  if (mood      && mood.trim())                              h += `Mood: ${mood.trim()}\n`;
+  if (template  && template.trim())                          h += `Template: ${template.trim()}\n`;
+  if (language  && language.trim() && language.trim() !== 'primary') h += `Language: ${language.trim()}\n`;
+  if (copyright && copyright.trim())                         h += `Copyright: ${copyright.trim()}\n`;
+  if (variants  && variants.length) {
+    h += 'Variants:\n';
+    for (const v of variants) h += ` - ${v.lang}: ${v.path}\n`;
+  }
+  return h + '\n---\n\n' + (body || '');
+}
+
+function serializeVariantFile({ title, body }) {
+  return `Title: ${title}\n\n---\n\n${body || ''}`;
+}
+
+// ── FILE SYSTEM ────────────────────────────────────────────────────────────
+
+async function openFolder() {
+  try {
+    dirHandle = await window.showDirectoryPicker({ mode: 'readwrite' });
+  } catch (e) {
+    if (e.name !== 'AbortError') alert('Could not open folder:\n' + e.message);
+    return;
+  }
+  await scanSongs();
+  document.getElementById('search').disabled = false;
+}
+
+async function scanSongs() {
+  const all = [];
+  variantPaths = new Set();
+
+  for await (const [name, handle] of dirHandle.entries()) {
+    if (handle.kind === 'file' && name.endsWith('.md')) all.push({ name, handle });
+  }
+
+  // collect every path listed as a variant in any file's header
+  for (const { handle } of all) {
+    try {
+      const text = await (await handle.getFile()).text();
+      for (const v of parseFile(text).variants) variantPaths.add(v.path);
+    } catch (_) { /* unreadable — skip */ }
+  }
+
+  // primary songs = any .md that isn't referenced as a variant by another file
+  songs = all
+    .filter(s => !variantPaths.has(s.name))
+    .sort((a, b) => a.name.localeCompare(b.name));
+
+  renderList();
+}
+
+async function readText(handle) {
+  return (await handle.getFile()).text();
+}
+
+async function writeText(handle, content) {
+  const w = await handle.createWritable();
+  await w.write(content);
+  await w.close();
+}
+
+// ── LOAD SONG ──────────────────────────────────────────────────────────────
+
+async function loadSong({ name, handle }) {
+  if ((pState?.dirty || (vState && !vState.noVariant && vState.dirty)) && pState !== null) {
+    if (!confirm('Unsaved changes — discard?')) return;
+  }
+  activeName = name;
+
+  try {
+    const parsed = parseFile(await readText(handle));
+    pState = { handle, ...parsed, dirty: false };
+    renderPrimary();
+
+    if (parsed.variants.length > 0) {
+      await loadVariant(parsed.variants[0]);
+    } else {
+      vState = { noVariant: true };
+      renderVariant();
+    }
+    renderList();
+  } catch (e) {
+    alert('Error loading song:\n' + e.message);
+  }
+}
+
+async function loadVariant({ lang, path }) {
+  try {
+    const handle = await dirHandle.getFileHandle(path);
+    const { title, body } = parseFile(await readText(handle));
+    vState = { handle, lang, path, title, body, dirty: false };
+  } catch (_) {
+    vState = { noVariant: true };
+  }
+  renderVariant();
+}
+
+// ── SAVE ──────────────────────────────────────────────────────────────────
+
+async function savePrimary() {
+  if (!pState) return;
+  try {
+    await writeText(pState.handle, serializeFile({
+      title:     document.getElementById('p-title').value,
+      mood:      document.getElementById('p-mood').value,
+      template:  document.getElementById('p-template').value,
+      language:  document.getElementById('p-language').value,
+      copyright: document.getElementById('p-copyright').value,
+      variants:  pState.variants,
+      body:      document.getElementById('p-body').value,
+    }));
+    pState.dirty = false;
+    setSaveDirty('btn-save-primary', false);
+    renderList();
+  } catch (e) { alert('Save failed:\n' + e.message); }
+}
+
+async function saveVariant() {
+  if (!vState || vState.noVariant) return;
+  try {
+    await writeText(vState.handle, serializeVariantFile({
+      title: document.getElementById('v-title').value,
+      body:  document.getElementById('v-body').value,
+    }));
+    vState.dirty = false;
+    setSaveDirty('btn-save-variant', false);
+  } catch (e) { alert('Save failed:\n' + e.message); }
+}
+
+async function createVariant() {
+  if (!pState || !dirHandle) return;
+  const langInput = document.getElementById('v-new-lang');
+  const lang = langInput.value.trim();
+  if (!lang) { langInput.focus(); return; }
+
+  const base = pState.handle.name.replace(/\.md$/, '');
+  const variantName = `${base}.${lang}.md`;
+
+  try {
+    const handle = await dirHandle.getFileHandle(variantName, { create: true });
+    await writeText(handle, 'Title: \n\n---\n\n');
+
+    // add to primary variants + auto-save primary
+    pState.variants = [...pState.variants, { lang, path: variantName }];
+    await writeText(pState.handle, serializeFile({
+      title:     document.getElementById('p-title').value,
+      mood:      document.getElementById('p-mood').value,
+      template:  document.getElementById('p-template').value,
+      language:  document.getElementById('p-language').value,
+      copyright: document.getElementById('p-copyright').value,
+      variants:  pState.variants,
+      body:      document.getElementById('p-body').value,
+    }));
+    pState.dirty = false;
+    setSaveDirty('btn-save-primary', false);
+    variantPaths.add(variantName);
+
+    vState = { handle, lang, path: variantName, title: '', body: '', dirty: false };
+    renderVariant();
+    renderList();
+  } catch (e) { alert('Could not create variant:\n' + e.message); }
+}
+
+// ── RENDER ────────────────────────────────────────────────────────────────
+
+function renderList() {
+  const container = document.getElementById('songs-container');
+  const footer    = document.getElementById('list-footer');
+  const q = searchQuery.toLowerCase();
+  const filtered  = songs.filter(s => s.name.toLowerCase().includes(q));
+
+  if (songs.length === 0) {
+    container.innerHTML = '<div class="empty-state">No songs found</div>';
+    footer.textContent  = '';
+    return;
+  }
+
+  const isDirty = activeName && (pState?.dirty || (vState && !vState.noVariant && vState.dirty));
+
+  container.innerHTML = filtered.map(s => {
+    const active = s.name === activeName;
+    const dot    = active && isDirty;
+    return `<div class="song-item${active ? ' active' : ''}" data-name="${h(s.name)}">
+      <span class="song-name">${h(s.name.replace(/\.md$/, ''))}</span>
+      ${dot ? '<span class="dirty-dot">●</span>' : ''}
+    </div>`;
+  }).join('');
+
+  container.querySelectorAll('.song-item').forEach(el =>
+    el.addEventListener('click', () => {
+      const s = songs.find(x => x.name === el.dataset.name);
+      if (s) loadSong(s);
+    })
+  );
+
+  footer.textContent = filtered.length === songs.length
+    ? `${songs.length} song${songs.length !== 1 ? 's' : ''}`
+    : `${filtered.length} of ${songs.length} songs`;
+}
+
+function renderPrimary() {
+  const content  = document.getElementById('primary-content');
+  const footer   = document.getElementById('primary-footer');
+  const filename = document.getElementById('primary-filename');
+
+  if (!pState) {
+    content.innerHTML = '<div class="empty-state">Open a song to edit</div>';
+    footer.style.display = 'none';
+    filename.textContent = '';
+    return;
+  }
+
+  filename.textContent = pState.handle.name;
+  footer.style.display = '';
+
+  content.innerHTML = `
+    <div class="field-row"><label>Title</label><input id="p-title" type="text" value="${h(pState.title)}"></div>
+    <div class="field-row"><label>Mood</label><input id="p-mood" type="text" value="${h(pState.mood)}" placeholder="worship, classic"></div>
+    <div class="field-row"><label>Template</label><input id="p-template" type="text" value="${h(pState.template)}"></div>
+    <div class="field-row"><label>Language</label><input id="p-language" type="text" value="${h(pState.language)}" placeholder="primary"></div>
+    <div class="field-row"><label>Copyright</label><input id="p-copyright" type="text" value="${h(pState.copyright)}"></div>
+    <div class="lyrics-section">
+      <label>Lyrics</label>
+      <textarea id="p-body" spellcheck="false">${h(pState.body)}</textarea>
+    </div>`;
+
+  content.querySelectorAll('input, textarea').forEach(el =>
+    el.addEventListener('input', () => markDirty('primary'))
+  );
+
+  setSaveDirty('btn-save-primary', pState.dirty);
+}
+
+function renderVariant() {
+  const content = document.getElementById('variant-content');
+  const footer  = document.getElementById('variant-footer');
+  const badge   = document.getElementById('variant-badge');
+
+  if (!vState) {
+    content.innerHTML    = '<div class="empty-state">Open a song to edit</div>';
+    footer.style.display = 'none';
+    badge.innerHTML      = '';
+    return;
+  }
+
+  if (vState.noVariant) {
+    badge.innerHTML      = '';
+    footer.style.display = 'none';
+    content.innerHTML    = `
+      <div class="no-variant-state">
+        <p>No variant linked to this song.</p>
+        <div class="create-row">
+          <input id="v-new-lang" type="text" placeholder="lang code (e.g. he)" maxlength="12">
+          <button class="btn-accent" id="btn-create-variant">Create</button>
+        </div>
+      </div>`;
+    document.getElementById('btn-create-variant').addEventListener('click', createVariant);
+    document.getElementById('v-new-lang').addEventListener('keydown', e => {
+      if (e.key === 'Enter') createVariant();
+    });
+    return;
+  }
+
+  badge.innerHTML      = `<span class="lang-badge">${h(vState.lang)}</span>`;
+  footer.style.display = '';
+
+  const variants   = pState?.variants || [];
+  const currentIdx = variants.findIndex(v => v.path === vState.path);
+  const tabs = variants.length > 1
+    ? `<div class="variant-tabs">${variants.map((v, i) =>
+        `<button class="variant-tab${i === currentIdx ? ' active' : ''}" data-idx="${i}">${h(v.lang)}</button>`
+      ).join('')}</div>`
+    : '';
+
+  content.innerHTML = tabs + `
+    <div class="field-row"><label>Title</label><input id="v-title" type="text" value="${h(vState.title)}"></div>
+    <div class="lyrics-section">
+      <label>Lyrics</label>
+      <textarea id="v-body" spellcheck="false">${h(vState.body)}</textarea>
+    </div>`;
+
+  if (variants.length > 1) {
+    content.querySelectorAll('.variant-tab').forEach(btn =>
+      btn.addEventListener('click', async () => {
+        if (vState.dirty && !confirm('Unsaved variant changes — discard?')) return;
+        await loadVariant(variants[parseInt(btn.dataset.idx)]);
+      })
+    );
+  }
+
+  content.querySelectorAll('input, textarea').forEach(el =>
+    el.addEventListener('input', () => markDirty('variant'))
+  );
+
+  setSaveDirty('btn-save-variant', vState.dirty);
+}
+
+// ── DIRTY TRACKING ────────────────────────────────────────────────────────
+
+function markDirty(panel) {
+  if (panel === 'primary' && pState)                     { pState.dirty = true; setSaveDirty('btn-save-primary', true); }
+  if (panel === 'variant' && vState && !vState.noVariant) { vState.dirty = true; setSaveDirty('btn-save-variant', true); }
+  renderList();
+}
+
+function setSaveDirty(id, dirty) {
+  const btn = document.getElementById(id);
+  if (!btn) return;
+  btn.textContent = dirty ? '● Save' : 'Save';
+  btn.classList.toggle('dirty', dirty);
+}
+
+// ── UTILITIES ─────────────────────────────────────────────────────────────
+
+function h(s) {
+  return (s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+// ── WIRE UP ───────────────────────────────────────────────────────────────
+
+document.getElementById('btn-open').addEventListener('click', openFolder);
+document.getElementById('btn-save-primary').addEventListener('click', savePrimary);
+document.getElementById('btn-save-variant').addEventListener('click', saveVariant);
+
+document.getElementById('search').addEventListener('input', e => {
+  searchQuery = e.target.value;
+  renderList();
+});
+
+document.addEventListener('keydown', e => {
+  if (!(e.metaKey || e.ctrlKey) || e.key !== 's') return;
+  e.preventDefault();
+  const active = document.activeElement;
+  if (active?.closest('#panel-primary')) savePrimary();
+  else if (active?.closest('#panel-variant')) saveVariant();
+});
+</script>
+</body>
+</html>
