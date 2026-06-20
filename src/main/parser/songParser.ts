@@ -39,7 +39,9 @@ export function parseSectionName(name: string): { type: SectionType; number?: nu
 }
 
 export function parseSongFile(filePath: string): ParsedSongFile {
-  const content = readFileSync(filePath, 'utf-8')
+  const raw = readFileSync(filePath, 'utf-8')
+  // Strip UTF-8 BOM and normalize Windows/old-Mac line endings
+  const content = raw.replace(/^﻿/, '').replace(/\r\n/g, '\n').replace(/\r/g, '\n')
   return parseSongContent(content)
 }
 
