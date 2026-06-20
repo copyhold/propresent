@@ -1,6 +1,6 @@
 import { app } from 'electron'
 import { join } from 'path'
-import { mkdirSync } from 'fs'
+import { mkdirSync, readdirSync, cpSync, existsSync } from 'fs'
 import { createWindows } from './windows'
 
 const isDev = process.env.NODE_ENV === 'development'
@@ -22,6 +22,23 @@ function getDataDir(): string {
   return join(app.getPath('userData'), 'data')
 }
 
+function seedDefaultData(songsDir: string, templatesDir: string): void {
+  const defaultData = join(process.resourcesPath, 'default-data')
+  if (!existsSync(defaultData)) return
+
+  const isEmpty = (dir: string) => readdirSync(dir).length === 0
+
+  if (isEmpty(songsDir)) {
+    const src = join(defaultData, 'songs')
+    if (existsSync(src)) cpSync(src, songsDir, { recursive: true })
+  }
+
+  if (isEmpty(templatesDir)) {
+    const src = join(defaultData, 'templates')
+    if (existsSync(src)) cpSync(src, templatesDir, { recursive: true })
+  }
+}
+
 app.whenReady().then(async () => {
   const dataDir = getDataDir()
   const songsDir = join(dataDir, 'songs')
@@ -29,6 +46,8 @@ app.whenReady().then(async () => {
 
   mkdirSync(songsDir, { recursive: true })
   mkdirSync(templatesDir, { recursive: true })
+
+  if (!isDev) seedDefaultData(songsDir, templatesDir)
 
   appConfigLibrary.load(dataDir)
   templateLibrary.load(templatesDir)
