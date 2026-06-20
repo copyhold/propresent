@@ -1,12 +1,9 @@
 name: Build Windows
 
 on:
-  workflow_dispatch:
-    inputs:
-      tag:
-        description: 'Release tag to build and attach to (e.g. v1.0.0)'
-        required: true
-        type: string
+  push:
+    branches:
+      - main
 
 jobs:
   build-windows:
@@ -17,8 +14,18 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          ref: ${{ inputs.tag }}
+
+      - name: Compute tag
+        id: tag
+        shell: bash
+        run: |
+          BASE=$(node -p "const v=require('./package.json').version.split('.');v[2]=${{ github.run_number }};'v'+v.join('.')")
+          echo "value=$BASE" >> $GITHUB_OUTPUT
+
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release create ${{ steps.tag.outputs.value }} --title "${{ steps.tag.outputs.value }}" --notes "Commit ${{ github.sha }}" --prerelease
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -43,4 +50,4 @@ jobs:
           $exe = Get-ChildItem -Path dist -Filter "*.exe" -Recurse | Select-Object -First 1
           if (-not $exe) { throw "No .exe found in dist/" }
           Write-Host "Uploading $($exe.FullName)"
-          gh release upload ${{ inputs.tag }} $exe.FullName --clobber
+          gh release upload ${{ steps.tag.outputs.value }} $exe.FullName --clobber
