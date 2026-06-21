@@ -43,7 +43,7 @@ function seedDefaultData(songsDir: string, templatesDir: string): void {
 app.whenReady().then(async () => {
   const dataDir = getDataDir();
   const songsDir = join(dataDir, "songs");
-  console.log("songsDir", songsDir, dataDir);
+  console.debug("songsDir", songsDir, dataDir);
   const templatesDir = join(dataDir, "templates");
 
   mkdirSync(songsDir, { recursive: true });
@@ -63,19 +63,45 @@ app.whenReady().then(async () => {
     appConfigLibrary,
   );
 
-  registerAllHandlers(songLibrary, templateLibrary, presentationStore, appConfigLibrary, dataDir);
+  registerAllHandlers(
+    songLibrary,
+    templateLibrary,
+    presentationStore,
+    appConfigLibrary,
+    dataDir,
+  );
 
-  const openSettings = () => getControlWindow()?.webContents.send(IPC.SETTINGS_OPEN)
-  const menuTemplate: Electron.MenuItemConstructorOptions[] = process.platform === 'darwin'
-    ? [{ label: app.name, submenu: [
-        { label: 'Preferences…', accelerator: 'CmdOrCtrl+,', click: openSettings },
-        { type: 'separator' },
-        { role: 'quit' }
-      ]}]
-    : [{ label: 'Edit', submenu: [
-        { label: 'Preferences…', accelerator: 'CmdOrCtrl+,', click: openSettings }
-      ]}]
-  Menu.setApplicationMenu(Menu.buildFromTemplate(menuTemplate))
+  const openSettings = () =>
+    getControlWindow()?.webContents.send(IPC.SETTINGS_OPEN);
+  const menuTemplate: Electron.MenuItemConstructorOptions[] =
+    process.platform === "darwin"
+      ? [
+          {
+            label: app.name,
+            submenu: [
+              {
+                label: "Preferences…",
+                accelerator: "CmdOrCtrl+,",
+                click: openSettings,
+              },
+              { type: "separator" },
+              { role: "quit" },
+            ],
+          },
+        ]
+      : [
+          {
+            label: "Edit",
+            submenu: [
+              {
+                label: "Preferences…",
+                accelerator: "CmdOrCtrl+,",
+                click: openSettings,
+              },
+            ],
+          },
+        ];
+  Menu.setApplicationMenu(Menu.buildFromTemplate(menuTemplate));
 
   createWindows();
 });

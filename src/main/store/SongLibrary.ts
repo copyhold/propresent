@@ -29,7 +29,9 @@ export class SongLibrary {
       watcher.on("change", (path) => this.handleFile(dir, path, "changed"));
       watcher.on("unlink", (path) => this.handleRemove(dir, path));
       this.watchers.push(watcher);
-      readyPromises.push(new Promise<void>((resolve) => watcher.on("ready", resolve)));
+      readyPromises.push(
+        new Promise<void>((resolve) => watcher.on("ready", resolve)),
+      );
     }
 
     await Promise.all(readyPromises);
@@ -42,7 +44,7 @@ export class SongLibrary {
   ): void {
     if (extname(filePath) !== ".md") return;
 
-    console.log("dir, path, action", dir, filePath, action);
+    console.debug("dir, path, action", dir, filePath, action);
     if (this.variantIndex.has(filePath)) {
       const songId = this.variantIndex.get(filePath)!;
       const song = this.songs.get(songId);
