@@ -1,29 +1,29 @@
-import { useAppStore } from '../store'
+import { useAppStore } from "../store";
 
 export function SongDetailPane() {
-  const selectedSong = useAppStore((s) => s.selectedSong)
-  const activeSong = useAppStore((s) => s.activeSong)
-  const loadSong = useAppStore((s) => s.loadSong)
+  const selectedSong = useAppStore((s) => s.selectedSong);
+  const activeSong = useAppStore((s) => s.activeSong);
+  const loadSong = useAppStore((s) => s.loadSong);
 
   if (!selectedSong) {
     return (
       <div className="flex items-center justify-center h-full text-app-500 text-sm">
         Select a song to view details
       </div>
-    )
+    );
   }
 
-  const isPresenting = activeSong?.id === selectedSong.id
-  const primaryLang = selectedSong.languages[0] ?? 'primary'
+  const isPresenting = activeSong?.id === selectedSong.id;
+  const primaryLang = selectedSong.languages[0] ?? "primary";
   const variants = selectedSong.languages.slice(1).map((lang, i) => ({
     lang,
-    filePath: selectedSong.variantFilePaths[i]
-  }))
+    filePath: selectedSong.variantFilePaths[i],
+  }));
 
   const openFile = async (filePath: string) => {
-    const err = await window.electronAPI.openFile?.(filePath)
-    if (err) console.warn('openFile failed:', err)
-  }
+    const err = await window.electronAPI.openFile?.(filePath);
+    if (err) console.warn("openFile failed:", err);
+  };
 
   return (
     <div className="flex flex-col h-full overflow-hidden">
@@ -34,11 +34,11 @@ export function SongDetailPane() {
           disabled={isPresenting}
           className={`w-full py-2 px-4 rounded text-sm font-medium cursor-pointer transition-colors ${
             isPresenting
-              ? 'bg-accent-dark border border-accent text-app-300 cursor-default'
-              : 'bg-accent text-white hover:bg-accent/80'
+              ? "bg-accent-dark border border-accent text-app-300 cursor-default"
+              : "bg-accent text-app-100 hover:bg-accent/80"
           }`}
         >
-          {isPresenting ? 'Presenting' : 'Start Presenting'}
+          {isPresenting ? "Presenting" : "Start Presenting"}
         </button>
       </div>
 
@@ -49,7 +49,7 @@ export function SongDetailPane() {
           <span className="text-[11px] text-app-400 pt-0.5">Title</span>
           <button
             onClick={() => openFile(selectedSong.filePath)}
-            className="text-left text-sm text-accent hover:text-white transition-colors font-medium truncate cursor-pointer"
+            className="text-left text-sm text-accent hover:text-app-100 transition-colors font-medium truncate cursor-pointer"
             title={selectedSong.filePath}
           >
             {selectedSong.title}
@@ -60,7 +60,9 @@ export function SongDetailPane() {
         {selectedSong.recommendedTemplates.length > 0 && (
           <div className="grid grid-cols-[auto_1fr] gap-2 items-start">
             <span className="text-[11px] text-app-400 pt-0.5">Templates</span>
-            <span className="text-sm text-app-200">{selectedSong.recommendedTemplates.join(', ')}</span>
+            <span className="text-sm text-app-200">
+              {selectedSong.recommendedTemplates.join(", ")}
+            </span>
           </div>
         )}
 
@@ -76,10 +78,10 @@ export function SongDetailPane() {
                   disabled={!filePath}
                   className={`text-left text-sm transition-colors cursor-pointer ${
                     filePath
-                      ? 'text-accent hover:text-white'
-                      : 'text-app-500 cursor-default'
+                      ? "text-accent hover:text-app-100"
+                      : "text-app-500 cursor-default"
                   }`}
-                  title={filePath || 'file not found'}
+                  title={filePath || "file not found"}
                 >
                   {lang}
                 </button>
@@ -97,7 +99,10 @@ export function SongDetailPane() {
               {section.name}
             </div>
             {section.slides.map((slide, slideIdx) => (
-              <div key={slide.id} className={`text-sm text-app-100 leading-relaxed ${slideIdx > 0 ? 'mt-3' : ''}`}>
+              <div
+                key={slide.id}
+                className={`text-sm text-app-100 leading-relaxed ${slideIdx > 0 ? "mt-3" : ""}`}
+              >
                 {(slide.lines[primaryLang] ?? []).map((line, lineIdx) => (
                   <div key={lineIdx}>{line}</div>
                 ))}
@@ -107,5 +112,5 @@ export function SongDetailPane() {
         ))}
       </div>
     </div>
-  )
+  );
 }

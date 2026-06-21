@@ -1,179 +1,190 @@
-import { useEffect, useState } from 'react'
-import { useAppStore } from './store'
-import { SongList } from './components/SongList'
-import { SongDetailPane } from './components/SongDetailPane'
-import { SlideNavigator } from './components/SlideNavigator'
-import { TemplateSelector } from './components/TemplateSelector'
-import { OutputPreview } from './components/OutputPreview'
-import { SettingsModal } from './components/SettingsModal'
-import type { PresentationState, LibraryChangedEvent } from '../../shared/models/Presentation'
-import type { AppConfig } from '../../shared/models/AppConfig'
-import { injectCss } from '../shared/injectCss'
+import { useEffect, useState } from "react";
+import { useAppStore } from "./store";
+import { SongList } from "./components/SongList";
+import { SongDetailPane } from "./components/SongDetailPane";
+import { SlideNavigator } from "./components/SlideNavigator";
+import { TemplateSelector } from "./components/TemplateSelector";
+import { OutputPreview } from "./components/OutputPreview";
+import { SettingsModal } from "./components/SettingsModal";
+import type {
+  PresentationState,
+  LibraryChangedEvent,
+} from "../../shared/models/Presentation";
+import type { AppConfig } from "../../shared/models/AppConfig";
+import { injectCss } from "../shared/injectCss";
 
 function applyThemeAndCss(config: AppConfig): void {
-  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-  const isDark = config.theme === 'dark' || (config.theme === 'system' && prefersDark)
-  document.documentElement.classList.toggle('dark', isDark)
-  document.documentElement.classList.toggle('light', !isDark)
-  injectCss('control-custom-css', config.controlCss ?? '')
+  const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+  const isDark =
+    config.theme === "dark" || (config.theme === "system" && prefersDark);
+  document.documentElement.classList.toggle("dark", isDark);
+  document.documentElement.classList.toggle("light", !isDark);
+  injectCss("control-custom-css", config.controlCss ?? "");
 }
 
 export function App() {
-  const [settingsOpen, setSettingsOpen] = useState(false)
-  const loadLibrary = useAppStore((s) => s.loadLibrary)
-  const setPresentationState = useAppStore((s) => s.setPresentationState)
-  const nextSlide = useAppStore((s) => s.nextSlide)
-  const prevSlide = useAppStore((s) => s.prevSlide)
-  const setMode = useAppStore((s) => s.setMode)
-  const gotoSection = useAppStore((s) => s.gotoSection)
-  const clearPresentation = useAppStore((s) => s.clearPresentation)
-  const presentationState = useAppStore((s) => s.presentationState)
-  const activeSong = useAppStore((s) => s.activeSong)
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const loadLibrary = useAppStore((s) => s.loadLibrary);
+  const setPresentationState = useAppStore((s) => s.setPresentationState);
+  const nextSlide = useAppStore((s) => s.nextSlide);
+  const prevSlide = useAppStore((s) => s.prevSlide);
+  const setMode = useAppStore((s) => s.setMode);
+  const gotoSection = useAppStore((s) => s.gotoSection);
+  const clearPresentation = useAppStore((s) => s.clearPresentation);
+  const presentationState = useAppStore((s) => s.presentationState);
+  const activeSong = useAppStore((s) => s.activeSong);
 
   useEffect(() => {
-    loadLibrary()
+    loadLibrary();
 
-    const unsubState = window.electronAPI.onPresentationStateChanged!((state: PresentationState) => {
-      setPresentationState(state)
-    })
+    const unsubState = window.electronAPI.onPresentationStateChanged!(
+      (state: PresentationState) => {
+        setPresentationState(state);
+      },
+    );
 
-    const unsubLibrary = window.electronAPI.onLibraryChanged!((_event: LibraryChangedEvent) => {
-      loadLibrary()
-    })
+    const unsubLibrary = window.electronAPI.onLibraryChanged!(
+      (_event: LibraryChangedEvent) => {
+        loadLibrary();
+      },
+    );
 
-    const unsubSettings = window.electronAPI.onSettingsOpen!(() => setSettingsOpen(true))
+    const unsubSettings = window.electronAPI.onSettingsOpen!(() =>
+      setSettingsOpen(true),
+    );
 
     return () => {
-      unsubState()
-      unsubLibrary()
-      unsubSettings()
-    }
-  }, [])
+      unsubState();
+      unsubLibrary();
+      unsubSettings();
+    };
+  }, []);
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
-      if (settingsOpen) return
-      if ((e.target as HTMLElement).tagName === 'INPUT') return
+      if (settingsOpen) return;
+      if ((e.target as HTMLElement).tagName === "INPUT") return;
 
       switch (e.key) {
-        case 'ArrowRight':
-        case ' ':
-          e.preventDefault()
-          nextSlide()
-          break
-        case 'ArrowLeft':
-          e.preventDefault()
-          prevSlide()
-          break
-        case 'Escape':
-          setMode('blank')
-          break
+        case "ArrowRight":
+        case " ":
+          e.preventDefault();
+          nextSlide();
+          break;
+        case "ArrowLeft":
+          e.preventDefault();
+          prevSlide();
+          break;
+        case "Escape":
+          setMode("blank");
+          break;
         default:
-          gotoSection(e.key)
+          gotoSection(e.key);
       }
-    }
+    };
 
-    window.addEventListener('keydown', handler)
-    return () => window.removeEventListener('keydown', handler)
-  }, [nextSlide, prevSlide, setMode, gotoSection, settingsOpen])
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [nextSlide, prevSlide, setMode, gotoSection, settingsOpen]);
 
   useEffect(() => {
-    window.electronAPI.getConfig!().then(applyThemeAndCss)
+    window.electronAPI.getConfig!().then(applyThemeAndCss);
 
     const unsubConfig = window.electronAPI.onConfigChanged!((config) => {
-      applyThemeAndCss(config)
-    })
+      applyThemeAndCss(config);
+    });
 
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
+    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
     const handleMediaChange = () => {
       window.electronAPI.getConfig!().then((config) => {
-        if (config.theme === 'system') applyThemeAndCss(config)
-      })
-    }
-    mediaQuery.addEventListener('change', handleMediaChange)
+        if (config.theme === "system") applyThemeAndCss(config);
+      });
+    };
+    mediaQuery.addEventListener("change", handleMediaChange);
 
     return () => {
-      unsubConfig()
-      mediaQuery.removeEventListener('change', handleMediaChange)
-    }
-  }, [])
+      unsubConfig();
+      mediaQuery.removeEventListener("change", handleMediaChange);
+    };
+  }, []);
 
-  const hasActive = activeSong !== null
+  const hasActive = activeSong !== null;
 
   return (
     <>
-    <div className="grid grid-cols-[18%_33%_1fr] grid-rows-[1fr] h-screen bg-app-950 text-white font-sans">
-      {/* Column 1: Song list */}
-      <div className="border-r border-app-700 overflow-hidden">
-        <SongList />
-      </div>
-
-      {/* Column 2: Song detail */}
-      <div className="border-r border-app-700 overflow-hidden">
-        <SongDetailPane />
-      </div>
-
-      {/* Column 3: Presentation pane */}
-      <div className="flex flex-col overflow-hidden">
-        {/* Fade / End controls */}
-        <div className="border-b border-app-700 p-2 flex gap-1.5 shrink-0">
-          <button
-            onClick={() => setMode('blank')}
-            disabled={!hasActive}
-            className={`px-3 py-1 rounded text-xs cursor-pointer text-white disabled:opacity-40 disabled:cursor-default ${
-              presentationState?.outputMode === 'blank'
-                ? 'border-2 border-accent bg-accent-dark'
-                : 'border border-app-600 bg-app-800'
-            }`}
-          >
-            Fade Out
-          </button>
-          <button
-            onClick={() => setMode('live')}
-            disabled={!hasActive}
-            className={`px-3 py-1 rounded text-xs cursor-pointer text-white disabled:opacity-40 disabled:cursor-default ${
-              presentationState?.outputMode === 'live'
-                ? 'border-2 border-accent bg-accent-dark'
-                : 'border border-app-600 bg-app-800'
-            }`}
-          >
-            Fade In
-          </button>
-          <button
-            onClick={() => clearPresentation()}
-            disabled={!hasActive}
-            className="px-3 py-1 rounded text-xs cursor-pointer text-white border border-app-600 bg-app-800 disabled:opacity-40 disabled:cursor-default ml-auto"
-          >
-            End
-          </button>
+      <div className="grid grid-cols-[18%_33%_1fr] grid-rows-[1fr] h-screen bg-app-950 text-app-100 font-sans">
+        {/* Column 1: Song list */}
+        <div className="border-r border-app-700 overflow-hidden">
+          <SongList />
         </div>
 
-        {/* Template selector */}
-        <div className="border-b border-app-700 shrink-0">
-          <TemplateSelector />
+        {/* Column 2: Song detail */}
+        <div className="border-r border-app-700 overflow-hidden">
+          <SongDetailPane />
         </div>
 
-        {/* Slide navigator */}
-        <div className="flex-1 overflow-hidden">
-          <SlideNavigator />
-        </div>
+        {/* Column 3: Presentation pane */}
+        <div className="flex flex-col overflow-hidden">
+          {/* Fade / End controls */}
+          <div className="border-b border-app-700 p-2 flex gap-1.5 shrink-0">
+            <button
+              onClick={() => setMode("blank")}
+              disabled={!hasActive}
+              className={`px-3 py-1 rounded text-xs cursor-pointer text-app-100 disabled:opacity-40 disabled:cursor-default ${
+                presentationState?.outputMode === "blank"
+                  ? "border-2 border-accent bg-accent-dark"
+                  : "border border-app-600 bg-app-800"
+              }`}
+            >
+              Fade Out
+            </button>
+            <button
+              onClick={() => setMode("live")}
+              disabled={!hasActive}
+              className={`px-3 py-1 rounded text-xs cursor-pointer text-app-100 disabled:opacity-40 disabled:cursor-default ${
+                presentationState?.outputMode === "live"
+                  ? "border-2 border-accent bg-accent-dark"
+                  : "border border-app-600 bg-app-800"
+              }`}
+            >
+              Fade In
+            </button>
+            <button
+              onClick={() => clearPresentation()}
+              disabled={!hasActive}
+              className="px-3 py-1 rounded text-xs cursor-pointer text-app-100 border border-app-600 bg-app-800 disabled:opacity-40 disabled:cursor-default ml-auto"
+            >
+              End
+            </button>
+          </div>
 
-        {/* Bottom: preview + info */}
-        <div className="border-t border-app-700 p-2 grid grid-cols-[auto_1fr] gap-3 h-[30%] shrink-0 overflow-hidden">
-          <OutputPreview />
-          <div className="grid grid-rows-[auto_auto] content-start gap-1.5 pt-1">
-            <div className="text-[11px] text-app-400">
-              Slide {(presentationState?.currentSlideIndex ?? 0) + 1} / {presentationState?.totalSlides ?? 0}
-            </div>
-            <div className="text-[10px] text-app-500 mt-1">
-              ← → Space to navigate · 1/2/c/b for sections · Esc to blank
+          {/* Template selector */}
+          <div className="border-b border-app-700 shrink-0">
+            <TemplateSelector />
+          </div>
+
+          {/* Slide navigator */}
+          <div className="flex-1 overflow-hidden">
+            <SlideNavigator />
+          </div>
+
+          {/* Bottom: preview + info */}
+          <div className="border-t border-app-700 p-2 grid grid-cols-[auto_1fr] gap-3 h-[30%] shrink-0 overflow-hidden">
+            <OutputPreview />
+            <div className="grid grid-rows-[auto_auto] content-start gap-1.5 pt-1">
+              <div className="text-[11px] text-app-400">
+                Slide {(presentationState?.currentSlideIndex ?? 0) + 1} /{" "}
+                {presentationState?.totalSlides ?? 0}
+              </div>
+              <div className="text-[10px] text-app-500 mt-1">
+                ← → Space to navigate · 1/2/c/b for sections · Esc to blank
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
 
-    {settingsOpen && <SettingsModal onClose={() => setSettingsOpen(false)} />}
+      {settingsOpen && <SettingsModal onClose={() => setSettingsOpen(false)} />}
     </>
-  )
+  );
 }
